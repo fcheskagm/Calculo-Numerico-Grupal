@@ -1,5 +1,6 @@
 import numpy as np
 import flet as ft
+import random
 
 def rellenar_matriz(n):
     # Genera una matriz n x n con números aleatorios enteros entre 1 y 100
@@ -21,53 +22,68 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     txt_name = ft.TextField(label="Your name")
     txt_number = ft.TextField(value="0", text_align=ft.TextAlign.RIGHT, width=100)
+    matriz = []
+    contenedor_matriz = ft.Column()
+    columnas = ft.Container(contenedor_matriz) 
 
     page.padding = 50
-    
+    def on_click_ramdon(e):
+        for control in contenedor_matriz:
+            if isinstance(control, ft.Row):
+                for txt in control.controls:
+                    if isinstance(txt, ft.TextField):
+                        txt.value = str(random.randint(1, 8))
+        contenedor_matriz.update()
+       
+        page.update()
+
+    def generar_matriz(e):
+        value = txt_number.value
+        if not value or int(value) <= 0:
+            txt_number.value = "Error numero invalido"
+            page.update()
+            return 
+        n = int(value)
+        for i in range(n):
+            contenedores_filas = []
+            for j in range(n+1):
+                txt = ft.TextField(width=50, 
+                                color=ft.colors.BLACK,
+                                text_align=ft.TextAlign.CENTER,
+                                )
+                contenedores_filas.append(txt)
+                matriz.append(
+                ft.Row(controls=contenedores_filas))
+        page.update()
+        contenedor_matriz.controls = matriz
+        page.update()
+        txt_number.disabled = True
+        page.update()
+
     page.update()
 
     # Agrega la etiqueta
     page.add(ft.Text("Soluciones Lineales Gauss-Seidel", text_align=ft.TextAlign.CENTER))
-   
 
     
-   # Pide al usuario que ingrese el tamaño de la matriz
-    
-    
-    n = int(input("Ingrese el tamaño de la matriz:"))
+
+    n = int(txt_number.value)
 
     page.update()
-    matrix_grid = ft.GridView(
-        expand=1,
-        runs_count=n,  # Ajusta este valor a n para una matriz nxn
-        max_extent=100,
-        child_aspect_ratio=1.0,
-        spacing=5,
-        run_spacing=5,
-    )
 
-    page.add(matrix_grid)
+    def obtener_datos():
+        matriz_datos = []
+        for control in contenedor_matriz:
+            if isinstance(control, ft.Row):
+                fila = []
+                for txt in control.controls:
+                    if isinstance(txt, ft.TextField):
+                        fila.append(float(txt.value))
+                matriz_datos.append(fila)
+        return matriz_datos
 
-    matrix_rows = []
-    for i in range(n):
-        row = []
-        for j in range(n):
-            row.append(ft.TextField(value="0", text_align=ft.TextAlign.CENTER, width=50))
-        matrix_rows.append(row)
-
-    for row in matrix_rows:
-        for control in row:
-            matrix_grid.controls.append(control)
-
-    def on_click_random(event):
-        # Llama a la función rellenar_matriz cuando se hace clic en el botón "Random"
-        matriz = rellenar_matriz(n)
-        for i, row in enumerate(matrix_rows):
-            for j, control in enumerate(row):
-                control.value = str(matriz[i][j])
-        # Llama a page.update() después de cambiar los valores
-        page.update()
-
+    
+  
     def gauss_seidel_modificado(A, b, max_iter=1000, tol=1e-8):
         n = len(b)
         x = np.zeros_like(b)
@@ -99,31 +115,18 @@ def main(page: ft.Page):
         # Llama a page.update() después de agregar los nuevos controles
         page.update()
 
-
-        
-
     # Agrega los botones en una fila
-    page.add(
+    page.add(contenedor_matriz,
         ft.Row(
             [
-                ft.ElevatedButton("Random", on_click=on_click_random),
+                ft.ElevatedButton("Random", on_click= on_click_ramdon),
                 ft.ElevatedButton("Solución", on_click=on_click_solution),
-                ft.ElevatedButton("Ingresar el tamaño de la matriz "),txt_number
-                
-                
+                ft.ElevatedButton("Ingresar el tamaño de la matriz ",on_click= generar_matriz),txt_number
+
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
     )
 
     page.update()
-
 ft.app(main)
-
-
-
-
-
-
-
-
